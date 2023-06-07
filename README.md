@@ -3,17 +3,17 @@
 Generate custom address which starts/ends/contains a string of choice.
 
 ## Uses
-change following fields in the main.rs file:  
-```
-    let start_string = "a";
-    let ends_string = "b";
-    let anywhere_string = "c";
-```
-Then build  
+Build the binary  
 `cargo build --release`  
 And run  
-`./target/release/ethereum-vanity-address`    
+`./target/release/ethereum-vanity-address --start-string bb --end-string cc --middle-string a` 
+
+Provide at least one of the following  arguments:  
+`--start-string` : desired hex characters at the beginning of the address
+`--end-string` : desired hex characters at the end of the address
+`--middle-string` : desired hex characters in the middle of the address
 
 ## Sample output  
-found address: "af62130f9c0a22e3c51ea446b55868a50625021b"
-private key: "3b852e1226fd453ac0ca0543a2912f4e93153ee8ab4e352a6ecfdc4fdb979b79"
+generator: tried   132097 addresses
+found address: "bb8650a5c267290aa5b4a322513bcc81ea0b52cc"
+private key: "1b95ded4e3513a15a40e0a4dde791c360aefcb240dd7645a5c1aa0ff6934fc83"

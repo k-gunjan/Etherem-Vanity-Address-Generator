@@ -1,4 +1,5 @@
 use crossterm::{cursor, execute, queue, terminal, Result};
+use regex::Regex;
 use std::io::{stdout, Write};
 
 pub fn cli_display(s: &str) -> Result<()> {
@@ -22,4 +23,10 @@ pub fn cli_display(s: &str) -> Result<()> {
     // Show the cursor again
     execute!(screen, cursor::Show)?;
     Ok(())
+}
+
+// check if the string is comprised of hex chars
+pub fn is_hex_string(input: &str) -> bool {
+    let hex_regex = Regex::new(r"^[0-9a-fA-F]+$").unwrap();
+    hex_regex.is_match(input)
 }

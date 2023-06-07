@@ -48,7 +48,9 @@ pub mod eth_wallet {
 
 pub mod generator {
     use super::eth_wallet::generate_random_wallet;
-    use super::util::cli_display;
+    use super::util::{cli_display, is_hex_string};
+
+    use std::env;
     pub struct Choice {
         start_string: Option<String>,
         ends_string: Option<String>,
@@ -84,6 +86,55 @@ pub mod generator {
                 None
             }
         }
+        pub fn collect_args() -> Result<Self, String> {
+            let mut choice = Choice::new();
+
+            // Retrieve the command line arguments
+            let args: Vec<String> = env::args().collect();
+
+            // Iterate over the arguments
+            let mut iter = args.iter().skip(1); // Skip the first argument (program name)
+
+            while let Some(arg) = iter.next() {
+                match arg.as_str() {
+                    "--start-string" => {
+                        if let Some(value) = iter.next() {
+                            if is_hex_string(value) {
+                                choice.set_start_string(value);
+                            }
+                        }
+                    }
+                    "--end-string" => {
+                        if let Some(value) = iter.next() {
+                            if is_hex_string(value) {
+                                choice.set_emds_string(value);
+                            }
+                        }
+                    }
+                    "--middle-string" => {
+                        if let Some(value) = iter.next() {
+                            if is_hex_string(value) {
+                                choice.set_middle_string(value);
+                            }
+                        }
+                    }
+                    _ => {
+                        // Handle unrecognized arguments
+                        // println!("Unrecognized argument: {}", arg);
+                    }
+                }
+            }
+            // check at least one choice made
+            if choice.start_string.is_some()
+                || choice.ends_string.is_some()
+                || choice.anywhere_string.is_some()
+            {
+                Ok(choice)
+            } else {
+                return Err("Invalid choices".to_string());
+            }
+        }
+
         fn check_pattern(&self, address: &String) -> bool {
             let mut result = true;
             if let Some(start_string) = &self.start_string {
