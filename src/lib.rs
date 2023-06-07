@@ -1,3 +1,4 @@
+mod util;
 pub mod eth_wallet {
 
     use ethers::core::rand::thread_rng;
@@ -5,6 +6,7 @@ pub mod eth_wallet {
     use web3::types::Address;
 
     use secp256k1::{PublicKey, Secp256k1, SecretKey};
+
     #[derive(Debug)]
     pub struct Wallet {
         pub secret_key: String,
@@ -41,5 +43,91 @@ pub mod eth_wallet {
         debug_assert_eq!(public_key[0], 0x04);
         let hash = keccak256(&public_key[1..]);
         Address::from_slice(&hash[12..])
+    }
+}
+
+pub mod generator {
+    use super::eth_wallet::generate_random_wallet;
+    use super::util::cli_display;
+    pub struct Choice {
+        start_string: Option<String>,
+        ends_string: Option<String>,
+        anywhere_string: Option<String>,
+    }
+
+    impl Choice {
+        pub fn new() -> Self {
+            Self {
+                start_string: None,
+                ends_string: None,
+                anywhere_string: None,
+            }
+        }
+        pub fn set_start_string(&mut self, s: &str) {
+            self.start_string = if s.len() > 0 {
+                Some(s.to_string())
+            } else {
+                None
+            }
+        }
+        pub fn set_emds_string(&mut self, s: &str) {
+            self.ends_string = if s.len() > 0 {
+                Some(s.to_string())
+            } else {
+                None
+            }
+        }
+        pub fn set_middle_string(&mut self, s: &str) {
+            self.anywhere_string = if s.len() > 0 {
+                Some(s.to_string())
+            } else {
+                None
+            }
+        }
+        fn check_pattern(&self, address: &String) -> bool {
+            let mut result = true;
+            if let Some(start_string) = &self.start_string {
+                if result && address.starts_with(start_string) {
+                    result = true
+                } else {
+                    result = false
+                }
+            }
+            if let Some(ends_string) = &self.ends_string {
+                if result && address.ends_with(ends_string) {
+                    result = true
+                } else {
+                    result = false
+                }
+            }
+            if let Some(anywhere_string) = &self.anywhere_string {
+                if result && address.contains(anywhere_string) {
+                    result = true
+                } else {
+                    result = false
+                }
+            }
+            result
+        }
+
+        pub fn vanity_address_generator(&self) {
+            let mut count = 0;
+            loop {
+                let wallet = generate_random_wallet();
+                let address = wallet.address;
+                // println!("checking address: {}", &address);
+                if self.check_pattern(&address) {
+                    println!("");
+                    println!("found address: {:?}", &address);
+                    println!("private key: {:?}", wallet.secret_key);
+                    break;
+                }
+                count += 1;
+                // println!("tried {} addresses", count);
+                if !cli_display(&format!("tried {:8} addresses", count)).is_ok() {
+                    println!("error in std out")
+                };
+            }
+        }
     }
 }
