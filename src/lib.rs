@@ -47,10 +47,15 @@ pub mod eth_wallet {
 }
 
 pub mod generator {
+    use num_cpus;
+
     use super::eth_wallet::generate_random_wallet;
     use super::util::{cli_display, is_hex_string};
+    use std::sync::{Arc, Mutex};
+    use std::thread;
 
     use std::env;
+    #[derive(Clone)]
     pub struct Choice {
         start_string: Option<String>,
         ends_string: Option<String>,
@@ -178,6 +183,41 @@ pub mod generator {
                 if !cli_display(&format!("tried {:8} addresses", count)).is_ok() {
                     println!("error in std out")
                 };
+            }
+        }
+        pub fn vanity_address_generator_multi_threaded(&self) {
+            let num_threads: usize = num_cpus::get();
+            let found = Arc::new(Mutex::new(false));
+            // let found_clone = Arc::new(&found);
+
+            let mut thread_handles = vec![];
+            for i in 0..num_threads {
+                let found_clone = Arc::clone(&found);
+                let self_clone = self.clone();
+                let handle = thread::spawn(move || {
+                    println!(
+                        "started thread no: {} , thread_id: {:?}",
+                        i,
+                        thread::current().id()
+                    );
+                    let data = &*found_clone;
+                    while !*data.lock().unwrap() {
+                        let wallet = generate_random_wallet();
+                        let address = wallet.address;
+                        if self_clone.check_pattern(&address) {
+                            println!("found in thread:{:?}", thread::current().id());
+                            println!("found address: {:?}", &address);
+                            println!("private key: {:?}", wallet.secret_key);
+                            let mut state = data.lock().unwrap();
+                            *state = true;
+                        }
+                    }
+                });
+                thread_handles.push(handle);
+            }
+
+            for t in thread_handles {
+                t.join().unwrap();
             }
         }
     }
