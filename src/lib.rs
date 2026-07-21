@@ -1,7 +1,7 @@
 mod util;
 pub mod eth_wallet {
 
-    use ethers::core::rand::thread_rng;
+    use ethers::core::rand::RngCore;
     use tiny_keccak::keccak256;
     use web3::types::Address;
 
@@ -25,16 +25,9 @@ pub mod eth_wallet {
         }
     }
 
-    // fn generate_wallet() -> LocalWallet {
-    //     let signer = LocalWallet::new(&mut thread_rng());
-    //     // println!("address is:{:?}", signer.address())
-    //     // address is:0xaab4e228cb5a8a2a4d88fa6603ef05f923edee93
-    //     signer
-    // }
-
-    pub fn generate_random_wallet() -> Wallet {
+    pub fn generate_random_wallet<R: RngCore>(rng: &mut R) -> Wallet {
         let secp = Secp256k1::new();
-        let (secret_key, public_key) = secp.generate_keypair(&mut thread_rng());
+        let (secret_key, public_key) = secp.generate_keypair(rng);
         Wallet::new(&secret_key, &public_key)
     }
 
@@ -49,6 +42,7 @@ pub mod eth_wallet {
 pub mod generator {
     use super::eth_wallet::generate_random_wallet;
     use super::util::{cli_display, is_hex_string};
+    use ethers::core::rand::RngCore;
 
     use std::env;
     pub struct Choice {
@@ -161,10 +155,10 @@ pub mod generator {
             result
         }
 
-        pub fn vanity_address_generator(&self) {
+        pub fn vanity_address_generator<R: RngCore>(&self, rng: &mut R) {
             let mut count = 0;
             loop {
-                let wallet = generate_random_wallet();
+                let wallet = generate_random_wallet(rng);
                 let address = wallet.address;
                 // println!("checking address: {}", &address);
                 if self.check_pattern(&address) {
