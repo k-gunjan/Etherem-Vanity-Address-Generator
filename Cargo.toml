@@ -18,3 +18,10 @@ web3 = "0.18.0"
 
 [features]
 dhat-heap = ["dep:dhat"]
+
+[dev-dependencies]
+criterion = { version = "0.8", features = ["html_reports"] }
+
+[[bench]]
+name = "wallet_generator"
+harness = false
