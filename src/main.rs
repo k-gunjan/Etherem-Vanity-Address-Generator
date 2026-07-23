@@ -1,7 +1,6 @@
 use ethereum_vanity_address::generator::Choice;
 use ethers::core::rand;
 
-
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
